@@ -10,4 +10,5 @@ Follow the Google Workspace add-on quickstart to set up your Cloud project:
 https://developers.google.com/apps-script/add-ons/cats-quickstart
 
 Rather than using the files they provide use the files in this project. 
+You will also need to enable the Drive API for your Apps Script project. 
 
