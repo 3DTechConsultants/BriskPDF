@@ -1,0 +1,79 @@
+const ICON_FOLDER_URL = "https://drive.google.com/uc?export=download&id=1UE1WOQr4DKelRlOTfWiM9gnJIH_Mwbb4";
+const ICON_PARENT_FOLDER_URL = "https://drive.google.com/uc?export=download&id=1U6UiXEMBRjaR5p4JUe188nuDGKxIHiLk";
+const ICON_TRASH_CAN = 'https://drive.google.com/uc?export=download&id=1GrSiHFjnmESYW2Dr4z_hRcScUFMWsf9C';
+const CARD_HEADER_URL = "https://drive.google.com/uc?export=download&id=1Gf_9lYp8TzXhMcnaVX7nM74YW1-1ymQ2";
+const QUEUE_HEADER_URL = "https://drive.google.com/uc?export=download&id=1ImBIlWRxEWdKXJr2c9vQNjhhzezYb1P5";
+
+
+//----------------------------------------------------------------
+function preferencesClear() {
+  PropertiesService.getUserProperties().deleteProperty("preferences");
+}
+//----------------------------------------------------------------
+function preferencesLog() {
+  Logger.log(PropertiesService.getUserProperties().getProperty("preferences"));
+}
+//----------------------------------------------------------------
+function preferencesGet() {
+
+  let preferences = JSON.parse(PropertiesService.getUserProperties().getProperty("preferences"));
+  if (!preferences) {
+    preferences = {
+      currentPath: "My Drive/",
+      breadCrumb: [{ id: "root", title: "My Drive" }]
+    }
+  }
+
+  return preferences;
+}
+//----------------------------------------------------------------
+function preferencesSet(preferences) {
+  try {
+    PropertiesService.getUserProperties().setProperty("preferences", JSON.stringify(preferences));
+  }
+  catch (e) {
+    Logger.log("Failed saving user preferences " + e);
+  }
+}
+//----------------------------------------------------------------
+function preferencesUpdate(e) {
+  let preferences = preferencesGet();
+  if (e) {
+    if (e.parameters && e.parameters.id && e.parameters.title) {
+      if (e.parameters.title == "parent") {
+        preferences.breadCrumb.pop();
+      }
+      else {
+        preferences.breadCrumb.push({ id: e.parameters.id, title: e.parameters.title });
+      }
+      preferences.currentPath = preferences.breadCrumb.map((item) => item.title).join("/");
+    }
+    if (e.formInput
+      && e.formInput.rootFolderDropdown
+      && e.formInput.rootFolderDropdown != preferences.breadCrumb[0].id) {
+      if (e.formInput.rootFolderDropdown == "root") {
+        preferences = {
+          currentPath: "My Drive/",
+          breadCrumb: [{ id: "root", title: "My Drive" }],
+        }
+      }
+      else if (e.formInput.rootFolderDropdown == "sharedWithMe") {
+        preferences = {
+          currentPath: "Shared With Me/",
+          breadCrumb: [{ id: "sharedWithMe", title: "Shared With Me" }],
+        }
+      }
+      else {
+        let driveName = driveGetName(e.formInput.rootFolderDropdown);
+        preferences = {
+          currentPath: driveName + "/",
+          breadCrumb: [{ id: e.formInput.rootFolderDropdown, title: driveName }],
+        }
+      }
+    }
+  }
+  preferencesSet(preferences);
+}
+//----------------------------------------------------------------
+
+
